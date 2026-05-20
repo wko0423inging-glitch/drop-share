@@ -10,9 +10,9 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.example.dropShare  # Apple Developer で登録したBundle IDに合わせる
+        bundle_identifier: com.wko0423.dropshare  # Apple Developer で登録したBundle IDに合わせる
       vars:
-        BUNDLE_ID: com.example.dropShare
+        BUNDLE_ID: com.wko0423.dropshare
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
       flutter: stable
@@ -58,7 +58,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: ad_hoc
-        bundle_identifier: com.example.dropShare
+        bundle_identifier: com.wko0423.dropshare
       flutter: stable
       xcode: latest
       cocoapods: default
