@@ -1,0 +1,81 @@
+workflows:
+  ios-release:
+    name: iOS Release (App Store)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    integrations:
+      app_store_connect: codemagic_asc_key  # Codemagicに登録するAPI Keyの名前
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.dropShare  # Apple Developer で登録したBundle IDに合わせる
+      vars:
+        BUNDLE_ID: com.example.dropShare
+        XCODE_WORKSPACE: ios/Runner.xcworkspace
+        XCODE_SCHEME: Runner
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Set up code signing
+        script: xcode-project use-profiles
+
+      - name: Generate launcher icons
+        script: dart run flutter_launcher_icons
+
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa \
+            --release \
+            --bundle-sksl-path=/dev/null \
+            --export-options-plist=$CM_EXPORT_OPTIONS_PATH
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - flutter_drive.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        cancel_previous_submissions: true
+
+  ios-debug:
+    name: iOS Debug (Ad Hoc / 実機テスト用)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    integrations:
+      app_store_connect: codemagic_asc_key
+
+    environment:
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.example.dropShare
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    scripts:
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Set up code signing
+        script: xcode-project use-profiles
+
+      - name: Build iOS IPA (Ad Hoc)
+        script: |
+          flutter build ipa \
+            --release \
+            --export-options-plist=$CM_EXPORT_OPTIONS_PATH
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
