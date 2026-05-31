@@ -1,43 +1,62 @@
 import 'package:flutter/material.dart';
-import '../services/discovery_service.dart';
+import '../services/discovery.dart';
 
 class DeviceCard extends StatelessWidget {
   final DiscoveredDevice device;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
-  const DeviceCard({
-    super.key,
-    required this.device,
-    required this.onTap,
-  });
+  const DeviceCard({super.key, required this.device, required this.onTap});
+
+  IconData _platformIcon(String platform) {
+    switch (platform) {
+      case 'android':
+        return Icons.android;
+      case 'ios':
+        return Icons.phone_iphone;
+      case 'macos':
+        return Icons.laptop_mac;
+      case 'windows':
+        return Icons.desktop_windows;
+      case 'linux':
+        return Icons.computer;
+      default:
+        return Icons.devices;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final disabled = onTap == null;
     return GestureDetector(
       onTap: onTap,
-      child: Opacity(
-        opacity: disabled ? 0.4 : 1.0,
+      child: Container(
+        width: 100,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 70,
-              height: 70,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
-                color: const Color(0xFF2C2C2E),
+                color: const Color(0xFF1C1C1E),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF007AFF).withOpacity(0.4),
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(
-                Icons.phone_android,
-                color: Color(0xFF007AFF),
+              child: Icon(
+                _platformIcon(device.platform),
+                color: const Color(0xFF007AFF),
                 size: 36,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               device.name,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-              maxLines: 1,
+              style: const TextStyle(fontSize: 12, color: Colors.white),
+              textAlign: TextAlign.center,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ],
