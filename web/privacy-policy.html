@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropShare — プライバシーポリシー</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0d0d0f;
+      color: #e0e0e0;
+      line-height: 1.75;
+      padding: 40px 20px 80px;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #2a2a2e;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    header p.subtitle {
+      font-size: 0.9rem;
+      color: #888;
+    }
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 36px 0 12px;
+    }
+    p {
+      margin-bottom: 14px;
+      color: #c8c8c8;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 14px;
+    }
+    li {
+      margin-bottom: 6px;
+      color: #c8c8c8;
+    }
+    a {
+      color: #4fa3ff;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+    .highlight-box {
+      background: #1a1a1f;
+      border: 1px solid #2a2a2e;
+      border-left: 3px solid #4fa3ff;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .highlight-box p {
+      margin: 0;
+      color: #d0d0d0;
+    }
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #2a2a2e;
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>DropShare プライバシーポリシー</h1>
+      <p class="subtitle">最終更新日：2026年5月31日</p>
+    </header>
+
+    <div class="highlight-box">
+      <p>DropShare はデバイス間でファイルを直接転送するアプリです。<strong>個人情報をサーバーへ送信・収集することはありません。</strong>転送されたデータはすべてお使いのデバイス内、またはローカルネットワーク経由でのみ処理されます。</p>
+    </div>
+
+    <h2>1. 収集する情報</h2>
+    <p>DropShare は以下の情報を<strong>収集・保存・送信しません</strong>：</p>
+    <ul>
+      <li>氏名・メールアドレス・電話番号などの個人識別情報</li>
+      <li>位置情報</li>
+      <li>連絡先・カレンダーなどのデバイスデータ</li>
+      <li>転送ファイルの内容</li>
+    </ul>
+    <p>アプリが端末内で一時的に扱う情報（デバイス名、ローカルIPアドレス）は、同一ネットワーク上のピア探索にのみ使用され、外部サーバーへは送信されません。</p>
+
+    <h2>2. ファイル転送の仕組み</h2>
+    <p>DropShare は2種類の転送方式をサポートしています。</p>
+    <ul>
+      <li><strong>LAN転送（mDNS + TCP）：</strong>同一Wi-Fiネットワーク内のデバイスを自動検出し、TCP直接通信でファイルを転送します。インターネットを経由しません。</li>
+      <li><strong>WebRTC P2P転送：</strong>接続確立のためのシグナリングにローカル内蔵のWebSocketサーバーを使用します。接続確立後はP2P通信となり、ファイルデータが第三者のサーバーを通過することはありません。</li>
+    </ul>
+
+    <h2>3. 権限の使用目的</h2>
+    <ul>
+      <li><strong>ローカルネットワーク（NEARBY_WIFI_DEVICES / ACCESS_FINE_LOCATION）：</strong>同一LAN上のデバイスを探索するために必要です。</li>
+      <li><strong>ストレージ（READ_MEDIA_* / WRITE_EXTERNAL_STORAGE）：</strong>送信するファイルの読み取り、および受信ファイルの保存に使用します。</li>
+      <li><strong>カメラ：</strong>QRコードのスキャンに使用します。転送先デバイスと接続する際に使用するオプション機能です。</li>
+    </ul>
+    <p>いずれの権限も、上記の機能以外には使用しません。</p>
+
+    <h2>4. 第三者への情報提供</h2>
+    <p>DropShare は第三者の分析ツール・広告ネットワーク・クラウドサービスを一切使用しておらず、ユーザーのデータを第三者と共有しません。</p>
+
+    <h2>5. データの保持</h2>
+    <p>受信ファイルはユーザーが指定したデバイスのストレージに保存されます。アプリをアンインストールすると、アプリが作成したすべてのデータ（転送履歴など）は削除されます。受信ファイル本体はユーザーが手動で削除する必要があります。</p>
+
+    <h2>6. 子どものプライバシー</h2>
+    <p>DropShare は13歳未満の子どもを対象とするサービスではなく、意図的に子どもから個人情報を収集することはありません。</p>
+
+    <h2>7. セキュリティ</h2>
+    <p>ファイルはデバイス間の直接通信で転送されます。ローカルネットワーク経由の転送ではネットワーク内のアクセス権を持つデバイスがデータを傍受できる可能性があることをご理解ください。機密性の高いファイルを転送する際は、安全なプライベートネットワーク上でご利用ください。</p>
+
+    <h2>8. ポリシーの変更</h2>
+    <p>本ポリシーを変更した場合は、このページを更新します。重大な変更がある場合はアプリ内でお知らせします。</p>
+
+    <h2>9. お問い合わせ</h2>
+    <p>プライバシーポリシーに関するご質問は、以下までご連絡ください：</p>
+    <p><a href="mailto:wko0423inging@icloud.com">wko0423inging@icloud.com</a></p>
+
+    <footer>
+      <p>© 2026 DropShare — wko0423</p>
+    </footer>
+  </div>
+</body>
+</html>
