@@ -5,7 +5,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: codemagic_asc_key  # Codemagicに登録するAPI Keyの名前
+      app_store_connect: Codemagic
 
     environment:
       ios_signing:
@@ -33,7 +33,6 @@ workflows:
         script: |
           flutter build ipa \
             --release \
-            --bundle-sksl-path=/dev/null \
             --export-options-plist=$CM_EXPORT_OPTIONS_PATH
 
     artifacts:
@@ -45,7 +44,6 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        cancel_previous_submissions: true
 
   ios-debug:
     name: iOS Debug (Ad Hoc / 実機テスト用)
@@ -53,7 +51,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: codemagic_asc_key
+      app_store_connect: Codemagic
 
     environment:
       ios_signing:
