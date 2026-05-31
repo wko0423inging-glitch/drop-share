@@ -22,7 +22,7 @@ workflows:
       - name: Import certificate
         script: |
           echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
-          keychain add-certificates --certificate /tmp/cert.p12 --certificate-password ""
+          keychain add-certificates --certificate /tmp/cert.p12 --certificate-password $CM_CERTIFICATE_PASSWORD
 
       - name: Set up provisioning profile
         script: |
