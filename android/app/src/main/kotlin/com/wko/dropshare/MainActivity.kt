@@ -1,4 +1,4 @@
-package com.example.drop_share
+package com.wko.dropshare
 
 import android.content.Intent
 import android.net.Uri
