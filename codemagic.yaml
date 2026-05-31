@@ -5,9 +5,8 @@ workflows:
     instance_type: mac_mini_m2
 
     environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.wko0423.dropshare
+      groups:
+        - ios_signing
       vars:
         BUNDLE_ID: com.wko0423.dropshare
         XCODE_WORKSPACE: ios/Runner.xcworkspace
@@ -17,11 +16,23 @@ workflows:
       cocoapods: default
 
     scripts:
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Import certificate
+        script: |
+          echo $CM_CERTIFICATE | base64 --decode > /tmp/cert.p12
+          keychain add-certificates --certificate /tmp/cert.p12 --certificate-password ""
+
+      - name: Set up provisioning profile
+        script: |
+          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_HOME"
+          echo $CM_PROVISIONING_PROFILE | base64 --decode > "$PROFILES_HOME/profile.mobileprovision"
+          xcode-project use-profiles
+
       - name: Flutter pub get
         script: flutter pub get
-
-      - name: Set up code signing
-        script: xcode-project use-profiles
 
       - name: Generate launcher icons
         script: dart run flutter_launcher_icons
