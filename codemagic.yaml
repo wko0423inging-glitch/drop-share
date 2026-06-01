@@ -8,7 +8,7 @@ workflows:
       groups:
         - ios_signing
       vars:
-        BUNDLE_ID: com.wko0423.dropshare
+        BUNDLE_ID: com.wko.dropshre
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
       flutter: stable
@@ -52,7 +52,7 @@ workflows:
             <string>manual</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.wko0423.dropshare</key>
+              <key>com.wko.dropshre</key>
               <string>DropShareアプリストア</string>
             </dict>
           </dict>
