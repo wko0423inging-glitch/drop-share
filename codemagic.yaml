@@ -19,12 +19,18 @@ workflows:
       - name: Set up keychain
         script: keychain initialize
 
-      - name: Fetch signing files
+      - name: Import certificate
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
+          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/cert.p12
+          keychain add-certificates --certificate /tmp/cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
+          echo "--- Installed certificates ---"
+          security find-identity -v -p codesigning
+
+      - name: Set up provisioning profile
+        script: |
+          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_HOME"
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > "$PROFILES_HOME/profile.mobileprovision"
           xcode-project use-profiles
 
       - name: Flutter pub get
@@ -35,13 +41,9 @@ workflows:
 
       - name: Build iOS IPA
         script: |
-          PROFILE=$(ls "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision 2>/dev/null | head -1)
-          if [ -z "$PROFILE" ]; then
-            echo "ERROR: No provisioning profile found"
-            exit 1
-          fi
+          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
           UUID=$(security cms -D -i "$PROFILE" | plutil -extract UUID raw -)
-          echo "Using profile UUID: $UUID"
+          echo "Profile UUID: $UUID"
 
           cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
