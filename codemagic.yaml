@@ -19,16 +19,12 @@ workflows:
       - name: Set up keychain
         script: keychain initialize
 
-      - name: Import certificate
+      - name: Fetch signing files
         script: |
-          echo "$CM_CERTIFICATE" | base64 --decode > /tmp/cert.p12
-          keychain add-certificates --certificate /tmp/cert.p12 --certificate-password "$CM_CERTIFICATE_PASSWORD"
-
-      - name: Set up provisioning profile
-        script: |
-          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILES_HOME"
-          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > "$PROFILES_HOME/profile.mobileprovision"
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
           xcode-project use-profiles
 
       - name: Flutter pub get
@@ -39,7 +35,7 @@ workflows:
 
       - name: Build iOS IPA
         script: |
-          cat > /tmp/ExportOptions.plist << EOF
+          cat > /tmp/ExportOptions.plist << 'PLIST'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -48,16 +44,9 @@ workflows:
             <string>app-store</string>
             <key>teamID</key>
             <string>ZVJ5H9S337</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.wko.dropshre</key>
-              <string>DropShareアプリストア</string>
-            </dict>
           </dict>
           </plist>
-          EOF
+          PLIST
           flutter build ipa \
             --release \
             --export-options-plist=/tmp/ExportOptions.plist
