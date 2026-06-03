@@ -21,7 +21,6 @@ class DiscoveryService {
   static const String _serviceType = '_dropshare._tcp';
 
   HttpServer? _server;
-  BonsoirService? _bonsoirService;
   BonsoirDiscovery? _bonsoirDiscovery;
   final _devicesController =
       StreamController<List<DiscoveredDevice>>.broadcast();
@@ -50,7 +49,7 @@ class DiscoveryService {
 
     // Bonsoirでサービスを公開
     try {
-      _bonsoirService = BonsoirService(
+      BonsoirService(
         name: deviceName,
         type: _serviceType,
         port: _port,
@@ -222,7 +221,6 @@ class DiscoveryService {
   Future<void> stopAdvertising() async {
     await _server?.close(force: true);
     _server = null;
-    _bonsoirService = null;
   }
 
   Future<void> stopDiscovery() async {
