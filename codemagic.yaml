@@ -16,6 +16,15 @@ workflows:
       cocoapods: default
 
     scripts:
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Set up provisioning profile
+        script: |
+          PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_HOME"
+          echo "$CM_PROVISIONING_PROFILE" | base64 --decode > "$PROFILES_HOME/profile.mobileprovision"
+
       - name: Flutter pub get
         script: flutter pub get
 
