@@ -59,9 +59,8 @@ class DiscoveryService {
           'platform': Platform.operatingSystem,
         },
       );
-      print('[Bonjour] Service advertised: $deviceName');
     } catch (e) {
-      print('[Bonjour] Failed to advertise service: $e');
+      // Log advertising failure silently
     }
   }
 
@@ -72,9 +71,8 @@ class DiscoveryService {
       _bonsoirDiscovery!.eventStream!.listen((event) {
         _handleBonsoirEvent(event);
       });
-      print('[Bonjour] Discovery started');
     } catch (e) {
-      print('[Bonjour] Failed to start discovery: $e');
+      // Log discovery failure silently
     }
 
     // フォールバック: 従来のIPスキャンも15秒ごとに実行
@@ -111,7 +109,6 @@ class DiscoveryService {
           if (!_devicesController.isClosed) {
             _devicesController.add(List.from(_devices));
           }
-          print('[Bonjour] Device found: $name ($ip)');
         }
       }
       // serviceLostイベント
@@ -122,14 +119,13 @@ class DiscoveryService {
         if (!_devicesController.isClosed) {
           _devicesController.add(List.from(_devices));
         }
-        print('[Bonjour] Device lost: $ip');
       }
       // resolutionFailedイベント
       else if (event.runtimeType.toString().contains('ResolutionFailed')) {
-        print('[Bonjour] Resolution failed for service');
+        // Resolution failed, handled silently
       }
     } catch (e) {
-      print('[Bonjour] Error handling event: $e');
+      // Handle event processing errors silently
     }
   }
 

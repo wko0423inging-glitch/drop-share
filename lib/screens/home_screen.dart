@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Text(device.name,
                     style: const TextStyle(color: Colors.white)),
                 subtitle: Text(device.platform,
-                    style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
                 onTap: () {
                   Navigator.pop(ctx);
                   for (final file in files) {
@@ -117,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             hintText: 'デバイス名を入力',
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
           ),
         ),
         actions: [
@@ -130,11 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               final newName = controller.text.trim();
               if (newName.isNotEmpty) {
+                final navContext = ctx;
                 setState(() => _deviceName = newName);
                 // TODO: SharedPreferencesに保存
                 await _discovery.startAdvertising(newName);
                 if (mounted) {
-                  Navigator.pop(ctx);
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(navContext);
                   _showSnackBar('デバイス名を更新しました');
                 }
               }
@@ -363,13 +365,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Icon(Icons.wifi_find,
                         size: 64,
-                        color: Colors.white.withOpacity(0.2)),
+                        color: Colors.white.withValues(alpha: 0.2)),
                     const SizedBox(height: 16),
                     Text(
                       '同じWiFiに接続されている\nデバイスが表示されます',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           fontSize: 14),
                     ),
                   ],
@@ -427,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'ファイルを受け取れる状態です',
                           style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.white.withValues(alpha: 0.5),
                               fontSize: 12),
                         ),
                       ],
@@ -443,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 8),
                   Icon(Icons.edit,
-                      color: Colors.white.withOpacity(0.5), size: 20),
+                      color: Colors.white.withValues(alpha: 0.5), size: 20),
                 ],
               ),
             ),
