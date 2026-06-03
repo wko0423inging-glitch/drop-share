@@ -21,6 +21,7 @@ class DiscoveryService {
   static const String _serviceType = '_dropshare._tcp';
 
   HttpServer? _server;
+  // ignore: unused_field
   BonsoirService? _bonsoirService;
   BonsoirDiscovery? _bonsoirDiscovery;
   final _devicesController =
