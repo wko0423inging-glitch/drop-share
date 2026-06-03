@@ -20,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isScanning = false;
   String? _statusMessage;
   double? _transferProgress;
-  final String _deviceName = Platform.localHostname;
+  late String _deviceName;
 
   @override
   void initState() {
@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _init() async {
+    _deviceName = await _loadDeviceName();
     await _requestPermissions();
     await _discovery.startAdvertising(_deviceName);
     _discovery.devicesStream.listen((devices) {
@@ -36,6 +37,60 @@ class _HomeScreenState extends State<HomeScreen> {
     });
     await _startTransferListener();
     _scan();
+  }
+
+  Future<String> _loadDeviceName() async {
+    // TODO: SharedPreferencesで保存したデバイス名を読み込む
+    // 実装後に共有プリファレンスから読み込み、ない場合はデフォルトを使用
+    return Platform.localHostname;
+  }
+
+  void _showEditDeviceNameDialog() {
+    final controller = TextEditingController(text: _deviceName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C1E),
+        title: const Text('デバイス名を編集',
+            style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFF2C2C2E),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            hintText: 'デバイス名を入力',
+            hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('キャンセル',
+                style: TextStyle(color: Colors.red)),
+          ),
+          TextButton(
+            onPressed: () async {
+              final newName = controller.text.trim();
+              if (newName.isNotEmpty) {
+                setState(() => _deviceName = newName);
+                // TODO: SharedPreferencesに保存
+                await _discovery.startAdvertising(newName);
+                if (mounted) {
+                  Navigator.pop(ctx);
+                  _showSnackBar('デバイス名を更新しました');
+                }
+              }
+            },
+            child: const Text('保存',
+                style: TextStyle(color: Color(0xFF007AFF))),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _requestPermissions() async {
@@ -269,47 +324,53 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.w500),
             ),
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1C1C1E),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.devices,
-                    color: Color(0xFF007AFF), size: 28),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _deviceName,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15),
-                      ),
-                      Text(
-                        'ファイルを受け取れる状態です',
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
-                            fontSize: 12),
-                      ),
-                    ],
+          GestureDetector(
+            onTap: _showEditDeviceNameDialog,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1C1C1E),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.devices,
+                      color: Color(0xFF007AFF), size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _deviceName,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15),
+                        ),
+                        Text(
+                          'ファイルを受け取れる状態です',
+                          style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF34C759),
-                    shape: BoxShape.circle,
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF34C759),
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Icon(Icons.edit,
+                      color: Colors.white.withOpacity(0.5), size: 20),
+                ],
+              ),
             ),
           ),
         ],
