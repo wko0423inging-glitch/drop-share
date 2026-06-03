@@ -58,7 +58,6 @@ class DiscoveryService {
           'platform': Platform.operatingSystem,
         },
       );
-      await _bonsoirService!.ready;
       print('[Bonjour] Service advertised: $deviceName');
     } catch (e) {
       print('[Bonjour] Failed to advertise service: $e');
@@ -72,7 +71,6 @@ class DiscoveryService {
       _bonsoirDiscovery!.eventStream!.listen((event) {
         _handleBonsoirEvent(event);
       });
-      await _bonsoirDiscovery!.ready;
       print('[Bonjour] Discovery started');
     } catch (e) {
       print('[Bonjour] Failed to start discovery: $e');
