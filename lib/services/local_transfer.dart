@@ -66,12 +66,12 @@ class LocalTransferService {
         await ServerSocket.bind(InternetAddress.anyIPv4, _transferPort);
     _transferServer!.listen((socket) async {
       try {
-        final dir = await getDownloadsDirectoryOrFallback();
         final headerBuf = <int>[];
         String? fileName;
         int fileSize = 0;
         int received = 0;
         IOSink? sink;
+        String? filePath;
 
         await for (final chunk in socket) {
           if (sink == null) {
@@ -83,7 +83,15 @@ class LocalTransferService {
             final p = header.split('|');
             fileName = p[0];
             fileSize = int.tryParse(p.length > 1 ? p[1] : '0') ?? 0;
-            final file = File('${dir.path}/$fileName');
+
+            // ファイルの拡張子で保存先を判定
+            final isImage = _isImageFile(fileName);
+            final dir = isImage
+                ? await getPhotosDirectoryOrFallback()
+                : await getFilesDirectoryOrFallback();
+
+            filePath = '${dir.path}/$fileName';
+            final file = File(filePath);
             sink = file.openWrite();
             final body = headerBuf.sublist(nl + 1);
             if (body.isNotEmpty) {
@@ -99,7 +107,7 @@ class LocalTransferService {
           }
         }
         await sink?.close();
-        onComplete('${dir.path}/$fileName');
+        onComplete(filePath ?? '');
       } catch (_) {}
     });
   }
@@ -158,6 +166,41 @@ class LocalTransferService {
   void dispose() {
     _transferServer?.close();
     _requestServer?.close();
+  }
+}
+
+bool _isImageFile(String fileName) {
+  final imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'raw'];
+  final ext = fileName.split('.').last.toLowerCase();
+  return imageExtensions.contains(ext);
+}
+
+Future<Directory> getPhotosDirectoryOrFallback() async {
+  try {
+    if (Platform.isAndroid) {
+      return Directory('/storage/emulated/0/DCIM/Camera');
+    }
+    // iOS: Documents以下のPhotosディレクトリ
+    final docsDir = await getApplicationDocumentsDirectory();
+    final photosDir = Directory('${docsDir.path}/Photos');
+    if (!await photosDir.exists()) {
+      await photosDir.create(recursive: true);
+    }
+    return photosDir;
+  } catch (_) {
+    return getTemporaryDirectory();
+  }
+}
+
+Future<Directory> getFilesDirectoryOrFallback() async {
+  try {
+    if (Platform.isAndroid) {
+      return Directory('/storage/emulated/0/Download');
+    }
+    // iOS: Documents
+    return await getApplicationDocumentsDirectory();
+  } catch (_) {
+    return getTemporaryDirectory();
   }
 }
 

@@ -23,6 +23,7 @@ class DiscoveryService {
       StreamController<List<DiscoveredDevice>>.broadcast();
   final List<DiscoveredDevice> _devices = [];
   Timer? _cleanupTimer;
+  String? _ownIp;
 
   Stream<List<DiscoveredDevice>> get devicesStream =>
       _devicesController.stream;
@@ -59,11 +60,18 @@ class DiscoveryService {
       final subnet = _getSubnet(interfaces);
       if (subnet == null) return;
 
+      // 自分のIPアドレスを取得
+      _ownIp = _getOwnIp(interfaces);
+
       final newDevices = <DiscoveredDevice>[];
 
       await Future.wait(
         List.generate(254, (i) async {
           final ip = '$subnet.${i + 1}';
+
+          // 自分自身のIPアドレスを除外
+          if (ip == _ownIp) return;
+
           try {
             final socket = await Socket.connect(ip, _port,
                 timeout: const Duration(milliseconds: 300));
@@ -108,6 +116,18 @@ class DiscoveryService {
           if (parts.length == 4) {
             return '${parts[0]}.${parts[1]}.${parts[2]}';
           }
+        }
+      }
+    }
+    return null;
+  }
+
+  String? _getOwnIp(List<NetworkInterface> interfaces) {
+    for (final iface in interfaces) {
+      for (final addr in iface.addresses) {
+        if (!addr.isLoopback &&
+            addr.type == InternetAddressType.IPv4) {
+          return addr.address;
         }
       }
     }
