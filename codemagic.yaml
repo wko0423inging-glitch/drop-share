@@ -41,33 +41,8 @@ workflows:
 
       - name: Build iOS IPA
         script: |
-          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
-          UUID=$(security cms -D -i "$PROFILE" | plutil -extract UUID raw -)
-          echo "Profile UUID: $UUID"
-
-          cat > /tmp/ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>teamID</key>
-            <string>ZVJ5H9S337</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>com.wko.dropshare</key>
-              <string>$UUID</string>
-            </dict>
-          </dict>
-          </plist>
-          EOF
-
           flutter build ipa \
-            --release \
-            --export-options-plist=/tmp/ExportOptions.plist
+            --release
 
     artifacts:
       - build/ios/ipa/*.ipa
