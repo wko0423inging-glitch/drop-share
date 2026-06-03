@@ -70,9 +70,7 @@ class DiscoveryService {
     try {
       _bonsoirDiscovery = BonsoirDiscovery(type: _serviceType);
       _bonsoirDiscovery!.eventStream!.listen((event) {
-        if (event.isReady) {
-          _handleBonsoirEvent(event);
-        }
+        _handleBonsoirEvent(event);
       });
       await _bonsoirDiscovery!.ready;
       print('[Bonjour] Discovery started');
@@ -88,9 +86,10 @@ class DiscoveryService {
     await _discoverDevices();
   }
 
-  void _handleBonsoirEvent(BonsoirDiscoveryEventType event) {
+  void _handleBonsoirEvent(dynamic event) {
     try {
-      if (event is BonsoirDiscoveryServiceFoundEvent) {
+      // serviceFoundイベント
+      if (event.runtimeType.toString().contains('ServiceFound')) {
         final service = event.service;
         final name = service.name ?? service.host ?? 'Unknown';
         final ip = service.ip ?? '';
@@ -113,14 +112,22 @@ class DiscoveryService {
           if (!_devicesController.isClosed) {
             _devicesController.add(List.from(_devices));
           }
+          print('[Bonjour] Device found: $name ($ip)');
         }
-      } else if (event is BonsoirDiscoveryServiceLostEvent) {
+      }
+      // serviceLostイベント
+      else if (event.runtimeType.toString().contains('ServiceLost')) {
         final service = event.service;
         final ip = service.ip ?? '';
         _devices.removeWhere((d) => d.ip == ip);
         if (!_devicesController.isClosed) {
           _devicesController.add(List.from(_devices));
         }
+        print('[Bonjour] Device lost: $ip');
+      }
+      // resolutionFailedイベント
+      else if (event.runtimeType.toString().contains('ResolutionFailed')) {
+        print('[Bonjour] Resolution failed for service');
       }
     } catch (e) {
       print('[Bonjour] Error handling event: $e');
@@ -217,12 +224,10 @@ class DiscoveryService {
   Future<void> stopAdvertising() async {
     await _server?.close(force: true);
     _server = null;
-    await _bonsoirService?.dispose();
     _bonsoirService = null;
   }
 
   Future<void> stopDiscovery() async {
-    await _bonsoirDiscovery?.dispose();
     _bonsoirDiscovery = null;
   }
 
