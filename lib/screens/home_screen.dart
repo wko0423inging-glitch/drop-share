@@ -7,7 +7,9 @@ import '../services/local_transfer.dart';
 import '../widgets/device_card.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(ThemeMode)? onThemeModeChanged;
+
+  const HomeScreen({super.key, this.onThemeModeChanged});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -247,17 +249,41 @@ class _HomeScreenState extends State<HomeScreen> {
                 : const Icon(Icons.refresh, color: Color(0xFF007AFF)),
             onPressed: _isScanning ? null : _scan,
           ),
+          PopupMenuButton<ThemeMode>(
+            icon: const Icon(Icons.brightness_4, color: Color(0xFF007AFF)),
+            onSelected: (ThemeMode mode) {
+              widget.onThemeModeChanged?.call(mode);
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<ThemeMode>(
+                value: ThemeMode.light,
+                child: Text('ライトモード'),
+              ),
+              const PopupMenuItem<ThemeMode>(
+                value: ThemeMode.dark,
+                child: Text('ダークモード'),
+              ),
+              const PopupMenuItem<ThemeMode>(
+                value: ThemeMode.system,
+                child: Text('システム設定に従う'),
+              ),
+            ],
+          ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_transferProgress != null)
-            LinearProgressIndicator(
-              value: _transferProgress,
-              backgroundColor: const Color(0xFF1C1C1E),
-              color: const Color(0xFF007AFF),
-            ),
+      body: RefreshIndicator(
+        onRefresh: _scan,
+        backgroundColor: const Color(0xFF1C1C1E),
+        color: const Color(0xFF007AFF),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_transferProgress != null)
+              LinearProgressIndicator(
+                value: _transferProgress,
+                backgroundColor: const Color(0xFF1C1C1E),
+                color: const Color(0xFF007AFF),
+              ),
           if (_statusMessage != null)
             Padding(
               padding:
@@ -374,6 +400,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }
