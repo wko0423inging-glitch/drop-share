@@ -8,7 +8,7 @@ workflows:
       groups:
         - ios_signing
       vars:
-        BUNDLE_ID: com.wko.dropshre
+        BUNDLE_ID: com.wko.dropshare
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
       flutter: stable
@@ -58,7 +58,7 @@ workflows:
             <string>manual</string>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.wko.dropshre</key>
+              <key>com.wko.dropshare</key>
               <string>$UUID</string>
             </dict>
           </dict>
