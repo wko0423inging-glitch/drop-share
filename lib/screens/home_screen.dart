@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../services/discovery.dart';
 import '../services/local_transfer.dart';
 import '../widgets/device_card.dart';
@@ -38,7 +39,58 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) setState(() => _devices = devices);
     });
     await _startTransferListener();
+    _listenForSharedFiles();
     _scan();
+  }
+
+  void _listenForSharedFiles() {
+    ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
+      if (value.isNotEmpty && _devices.isNotEmpty) {
+        _showDeviceSelectionDialog(value);
+      }
+    }, onError: (err) {
+      debugPrint('Error listening to shared files: $err');
+    });
+  }
+
+  void _showDeviceSelectionDialog(List<SharedMediaFile> files) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C1E),
+        title: const Text('送信するデバイスを選択',
+            style: TextStyle(color: Colors.white)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: _devices.length,
+            itemBuilder: (context, index) {
+              final device = _devices[index];
+              return ListTile(
+                title: Text(device.name,
+                    style: const TextStyle(color: Colors.white)),
+                subtitle: Text(device.platform,
+                    style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  for (final file in files) {
+                    _sendFileTo(device, file.path);
+                  }
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('キャンセル',
+                style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String> _loadDeviceName() async {
@@ -166,11 +218,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) setState(() => _isScanning = false);
   }
 
-  Future<void> _sendFileTo(DiscoveredDevice device) async {
-    final result = await FilePicker.platform.pickFiles();
-    if (result == null || result.files.isEmpty) return;
-
-    final filePath = result.files.first.path;
+  Future<void> _sendFileTo(DiscoveredDevice device, [String? filePath]) async {
+    filePath ??= (await FilePicker.platform.pickFiles())?.files.first.path;
     if (filePath == null) return;
 
     setState(() {
