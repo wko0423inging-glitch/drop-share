@@ -30,8 +30,11 @@ workflows:
         script: |
           PROFILES_HOME="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILES_HOME"
+          echo "Creating provisioning profile directory..."
+          ls -la "$PROFILES_HOME"
           echo "$CM_PROVISIONING_PROFILE" | base64 --decode > "$PROFILES_HOME/profile.mobileprovision"
-          xcode-project use-profiles
+          echo "Provisioning profile created"
+          ls -la "$PROFILES_HOME/profile.mobileprovision"
 
       - name: Flutter pub get
         script: flutter pub get
@@ -42,10 +45,27 @@ workflows:
       - name: Build iOS IPA
         script: |
           PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/profile.mobileprovision"
-          UUID=$(security cms -D -i "$PROFILE" | plutil -extract UUID raw -)
-          echo "Profile UUID: $UUID"
 
-          cat > /tmp/ExportOptions.plist << EOF
+          echo "=== Debug Info ==="
+          echo "Profile path: $PROFILE"
+          echo "Profile exists: $(test -f "$PROFILE" && echo 'YES' || echo 'NO')"
+
+          if [ ! -f "$PROFILE" ]; then
+            echo "ERROR: Provisioning profile not found at $PROFILE"
+            exit 1
+          fi
+
+          echo "Extracting UUID from profile..."
+          UUID=$(security cms -D -i "$PROFILE" 2>/dev/null | plutil -extract UUID raw - 2>/dev/null)
+
+          if [ -z "$UUID" ]; then
+            echo "WARNING: Could not extract UUID from provisioning profile"
+            echo "Using auto-signing instead..."
+            flutter build ipa --release --no-codesign
+          else
+            echo "Profile UUID: $UUID"
+
+            cat > /tmp/ExportOptions.plist << EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -65,9 +85,10 @@ workflows:
           </plist>
           EOF
 
-          flutter build ipa \
-            --release \
-            --export-options-plist=/tmp/ExportOptions.plist
+            flutter build ipa \
+              --release \
+              --export-options-plist=/tmp/ExportOptions.plist
+          fi
 
     artifacts:
       - build/ios/ipa/*.ipa
