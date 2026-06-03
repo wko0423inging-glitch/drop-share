@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:bonsoir/bonsoir.dart';
 
 class DiscoveredDevice {
   final String name;
@@ -17,8 +18,11 @@ class DiscoveredDevice {
 
 class DiscoveryService {
   static const int _port = 47847;
+  static const String _serviceType = '_dropshare._tcp';
 
   HttpServer? _server;
+  BonsoirService? _bonsoirService;
+  BonsoirDiscovery? _bonsoirDiscovery;
   final _devicesController =
       StreamController<List<DiscoveredDevice>>.broadcast();
   final List<DiscoveredDevice> _devices = [];
@@ -43,14 +47,84 @@ class DiscoveryService {
         await req.response.close();
       }
     });
+
+    // Bonsoirでサービスを公開
+    try {
+      _bonsoirService = BonsoirService(
+        name: deviceName,
+        type: _serviceType,
+        port: _port,
+        attributes: {
+          'platform': Platform.operatingSystem,
+        },
+      );
+      await _bonsoirService!.ready;
+      print('[Bonjour] Service advertised: $deviceName');
+    } catch (e) {
+      print('[Bonjour] Failed to advertise service: $e');
+    }
   }
 
   Future<void> startDiscovery() async {
+    // Bonsoirディスカバリーを開始
+    try {
+      _bonsoirDiscovery = BonsoirDiscovery(type: _serviceType);
+      _bonsoirDiscovery!.eventStream!.listen((event) {
+        if (event.isReady) {
+          _handleBonsoirEvent(event);
+        }
+      });
+      await _bonsoirDiscovery!.ready;
+      print('[Bonjour] Discovery started');
+    } catch (e) {
+      print('[Bonjour] Failed to start discovery: $e');
+    }
+
+    // フォールバック: 従来のIPスキャンも15秒ごとに実行
     _cleanupTimer?.cancel();
     _cleanupTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _discoverDevices();
     });
     await _discoverDevices();
+  }
+
+  void _handleBonsoirEvent(BonsoirDiscoveryEventType event) {
+    try {
+      if (event is BonsoirDiscoveryServiceFoundEvent) {
+        final service = event.service;
+        final name = service.name ?? service.host ?? 'Unknown';
+        final ip = service.ip ?? '';
+        final platform = service.attributes?['platform'] ?? 'unknown';
+
+        // 自分自身を除外
+        if (ip == _ownIp) return;
+
+        final device = DiscoveredDevice(
+          name: name,
+          ip: ip,
+          port: service.port ?? _port,
+          platform: platform,
+        );
+
+        // デバイスが既に存在するかチェック
+        final exists = _devices.any((d) => d.ip == device.ip);
+        if (!exists) {
+          _devices.add(device);
+          if (!_devicesController.isClosed) {
+            _devicesController.add(List.from(_devices));
+          }
+        }
+      } else if (event is BonsoirDiscoveryServiceLostEvent) {
+        final service = event.service;
+        final ip = service.ip ?? '';
+        _devices.removeWhere((d) => d.ip == ip);
+        if (!_devicesController.isClosed) {
+          _devicesController.add(List.from(_devices));
+        }
+      }
+    } catch (e) {
+      print('[Bonjour] Error handling event: $e');
+    }
   }
 
   Future<void> _discoverDevices() async {
@@ -143,11 +217,19 @@ class DiscoveryService {
   Future<void> stopAdvertising() async {
     await _server?.close(force: true);
     _server = null;
+    await _bonsoirService?.dispose();
+    _bonsoirService = null;
+  }
+
+  Future<void> stopDiscovery() async {
+    await _bonsoirDiscovery?.dispose();
+    _bonsoirDiscovery = null;
   }
 
   void dispose() {
     _cleanupTimer?.cancel();
     stopAdvertising();
+    stopDiscovery();
     _devicesController.close();
   }
 }
